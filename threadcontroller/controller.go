@@ -81,7 +81,6 @@ func (c *Controller) Run(ctx context.Context, wg *sync.WaitGroup) {
 		go c.executedThreadsCounterReset(ctx, wgController)
 	}
 
-
 	wgController.Add(1)
 	go c.commandChannelReader(ctx, wgController)
 
@@ -163,7 +162,7 @@ func (c *Controller) waitForThreadTimeLimitReset(ctx context.Context) {
 	for {
 		if c.threadLimitExceeded() {
 			select {
-			case <-time.After(c.executedThreadsResetTime/4):
+			case <-time.After(c.executedThreadsResetTime / 4):
 				continue
 			case <-ctx.Done():
 				return

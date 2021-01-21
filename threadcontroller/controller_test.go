@@ -18,12 +18,11 @@ func TestManager(t *testing.T) {
 	suite.Run(t, new(ControllerSuite))
 }
 
-
 type managerTestEnvironment struct {
-	context context.Context
-	cancel  context.CancelFunc
+	context    context.Context
+	cancel     context.CancelFunc
 	controller *Controller
-	suite   *ControllerSuite
+	suite      *ControllerSuite
 }
 
 func (suite *ControllerSuite) setupEnv() *managerTestEnvironment {
@@ -36,7 +35,6 @@ func (suite *ControllerSuite) setupEnv() *managerTestEnvironment {
 	return &testEnv
 }
 
-
 func (suite *ControllerSuite) TestControllerNoExecutionTimeLimit() {
 	testEnv := suite.setupEnv()
 
@@ -47,14 +45,12 @@ func (suite *ControllerSuite) TestControllerNoExecutionTimeLimit() {
 	}
 	testEnv.controller = NewController(numberOfThreads, threadTimeLimit)
 
-
-
 	var jobDoneCounter uint64 = 0
 	jobDoneWg := &sync.WaitGroup{}
 	jobSleepTime := 1 * time.Millisecond
 
 	simultaneousJobRunning := int64(0)
-	dummyJob := func(){
+	dummyJob := func() {
 		jobsRunning := atomic.AddInt64(&simultaneousJobRunning, 1)
 		if jobsRunning > int64(numberOfThreads) {
 			panic("total running jobs started more than thread limit")
@@ -66,12 +62,11 @@ func (suite *ControllerSuite) TestControllerNoExecutionTimeLimit() {
 		jobDoneWg.Done()
 	}
 
-
 	numberOfJobsExecuted := 100
 	jobDoneWg.Add(numberOfJobsExecuted)
 	commandCh := testEnv.controller.CommandChannel()
 	go func() {
-		for i := 0; i<numberOfJobsExecuted; i++ {
+		for i := 0; i < numberOfJobsExecuted; i++ {
 			commandCh <- dummyJob
 		}
 	}()
@@ -99,7 +94,6 @@ func (suite *ControllerSuite) TestControllerWithExecutionTimeLimit() {
 	}
 	testEnv.controller = NewController(numberOfThreads, threadTimeLimit)
 
-
 	var jobDoneCounter uint64 = 0
 	jobDoneWg := &sync.WaitGroup{}
 	//job sleepTime chosen less than threadTimeLimit.Time to create time overflow of jobs running
@@ -107,7 +101,7 @@ func (suite *ControllerSuite) TestControllerWithExecutionTimeLimit() {
 	jobSleepTime := 1 * time.Millisecond
 
 	simultaneousJobRunning := int64(0)
-	dummyJob := func(){
+	dummyJob := func() {
 		jobsRunning := atomic.AddInt64(&simultaneousJobRunning, 1)
 		if jobsRunning > int64(threadTimeLimit.Threads) {
 			text := fmt.Sprintf("total running jobs started more than thread limit\ntotal jobsRunning [%d] threadTimeLimit.Threads: [%d] ", jobsRunning, threadTimeLimit.Threads)
@@ -120,12 +114,11 @@ func (suite *ControllerSuite) TestControllerWithExecutionTimeLimit() {
 		jobDoneWg.Done()
 	}
 
-
 	numberOfJobsExecuted := 100
 	jobDoneWg.Add(numberOfJobsExecuted)
 	commandCh := testEnv.controller.CommandChannel()
 	go func() {
-		for i := 0; i<numberOfJobsExecuted; i++ {
+		for i := 0; i < numberOfJobsExecuted; i++ {
 			commandCh <- dummyJob
 		}
 	}()
@@ -137,23 +130,22 @@ func (suite *ControllerSuite) TestControllerWithExecutionTimeLimit() {
 
 	endTime := time.Now()
 	elapsedTime := endTime.Sub(startTime)
-	totalTime := time.Duration(uint64(numberOfJobsExecuted) / threadTimeLimit.Threads) * threadTimeLimit.Time
+	totalTime := time.Duration(uint64(numberOfJobsExecuted)/threadTimeLimit.Threads) * threadTimeLimit.Time
 
 	suite.checkTimeDurationWithinPercent(totalTime, elapsedTime, 10)
 	suite.Equal(uint64(numberOfJobsExecuted), atomic.LoadUint64(&jobDoneCounter))
 }
 
 func (suite *ControllerSuite) checkTimeDurationWithinPercent(expected time.Duration, received time.Duration, percent int) {
-		timeDelta := time.Duration((expected.Nanoseconds() / 100) * int64(percent))
-		var absTimeDiff time.Duration
-		if expected > received {
-			absTimeDiff = expected - received
-		} else {
-			absTimeDiff = received - expected
-		}
-		suite.GreaterOrEqual(timeDelta, absTimeDiff)
+	timeDelta := time.Duration((expected.Nanoseconds() / 100) * int64(percent))
+	var absTimeDiff time.Duration
+	if expected > received {
+		absTimeDiff = expected - received
+	} else {
+		absTimeDiff = received - expected
+	}
+	suite.GreaterOrEqual(timeDelta, absTimeDiff)
 }
-
 
 func (suite *ControllerSuite) TestControllerContextDoneCheck() {
 	testEnv := suite.setupEnv()
@@ -169,18 +161,17 @@ func (suite *ControllerSuite) TestControllerContextDoneCheck() {
 	jobDoneWg := &sync.WaitGroup{}
 	jobUnlock := make(chan struct{})
 	jobStarted := make(chan struct{})
-	dummyJob := func(){
-		jobStarted <- struct {}{}
-		<- jobUnlock
+	dummyJob := func() {
+		jobStarted <- struct{}{}
+		<-jobUnlock
 		atomic.AddUint64(&jobDoneCounter, 1)
 		jobDoneWg.Done()
 	}
 
-
 	jobDoneWg.Add(1)
 	commandCh := testEnv.controller.CommandChannel()
 	go func() {
-			commandCh <- dummyJob
+		commandCh <- dummyJob
 	}()
 
 	controllerWg := &sync.WaitGroup{}

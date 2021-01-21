@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func main()  {
+func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	totalThreads := 10
 	threadTimeLimit := threadcontroller.ThreadTimeLimit{
@@ -25,8 +25,8 @@ func main()  {
 
 	chunkSize := 10
 	jobWg := &sync.WaitGroup{}
-	for i:=0; i<10; i++ {
-		rangeFrom := i * chunkSize + 1
+	for i := 0; i < 10; i++ {
+		rangeFrom := i*chunkSize + 1
 		rangeTo := rangeFrom + chunkSize
 		jobWg.Add(1)
 		commandChan <- printNumbers(jobWg, rangeFrom, rangeTo)
@@ -37,13 +37,11 @@ func main()  {
 	wg.Wait()
 }
 
-func printNumbers(wg *sync.WaitGroup, from int, to int) threadcontroller.Job{
+func printNumbers(wg *sync.WaitGroup, from int, to int) threadcontroller.Job {
 	return func() {
 		defer wg.Done()
-		for i:=from; i<to; i++ {
+		for i := from; i < to; i++ {
 			fmt.Println(i)
 		}
 	}
 }
-
-
